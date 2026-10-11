@@ -58,7 +58,7 @@ const MAPCHK=['Name every room on the floor plan without the compass','Know the 
 const PLAT={PC:'PC: adjust mouse sensitivity and ADS settings to what feels consistent.',PlayStation:'PlayStation: use controller sensitivity/aim settings, not mouse values.',Xbox:'Xbox: use controller sensitivity/aim settings, not mouse values.'};
 const RM=[['pos','Deaths from poor positioning',['atkdef','rot']],['xh','Missed shots / poor crosshair placement',['cp','fsa']],['drone','Missed drone information',['drn','opm']],['peek','Bad peeks',['peek','lean']],['util','Poor utility usage',['opm','dec']],['mis','Attack/defense mistakes',['dec','clutch']]];
 /* ===== SUPABASE CONFIG: paste your Project URL and publishable key (never a secret/service-role key) ===== */
-const SB_URL='YOUR_SUPABASE_PROJECT_URL',SB_KEY='YOUR_SUPABASE_PUBLISHABLE_KEY';
+const SB_URL='https://eqluyrgxyfzxxpwpyloa.supabase.co',SB_KEY='sb_publishable_F-NqjLBpC14hzQr_mA_OWQ_TRcz6r17';
 const sb=(!SB_URL.startsWith('YOUR_')&&!SB_KEY.startsWith('YOUR_')&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
 const mk=()=>({p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},week:1,log:[],rev:[],map:{}});
 const norm=x=>{x=x&&typeof x=='object'?x:{};return{p:{...mk().p,...(x.p||{})},week:+x.week||1,log:Array.isArray(x.log)?x.log:[],rev:Array.isArray(x.rev)?x.rev:[],map:x.map&&typeof x.map=='object'?x.map:{}}};

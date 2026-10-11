@@ -28,6 +28,7 @@ label.f{display:block;margin:10px 0 3px;color:var(--mu);font-size:13px}.row{disp
 .hero{padding:40px 0 10px}.hero h1{font-size:44px}.note{font-size:12px;color:var(--mu)}
 </style></head><body>
 <nav id="nav"></nav><main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const D=(id,cat,t,diff,dur,reps,loc,obj,steps,mist,meas)=>({id,cat,t,diff,dur,reps,loc,obj,steps,mist,meas});
 const DR=[
@@ -56,14 +57,50 @@ const MISSIONS=['Win one gunfight from cover today.','Drone before every entry f
 const MAPCHK=['Name every room on the floor plan without the compass','Know the main stair routes','Know common entry points','Know both bomb site layouts for one site','Know two rotation routes for each side','Play one Custom Game just walking the map'];
 const PLAT={PC:'PC: adjust mouse sensitivity and ADS settings to what feels consistent.',PlayStation:'PlayStation: use controller sensitivity/aim settings, not mouse values.',Xbox:'Xbox: use controller sensitivity/aim settings, not mouse values.'};
 const RM=[['pos','Deaths from poor positioning',['atkdef','rot']],['xh','Missed shots / poor crosshair placement',['cp','fsa']],['drone','Missed drone information',['drn','opm']],['peek','Bad peeks',['peek','lean']],['util','Poor utility usage',['opm','dec']],['mis','Attack/defense mistakes',['dec','clutch']]];
-let S;try{S=JSON.parse(localStorage.getItem('sm')||'null')}catch(e){}
-S=S||{p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},week:1,log:[],rev:[],map:{}};
-const save=()=>{try{localStorage.setItem('sm',JSON.stringify(S))}catch(e){}};
+/* ===== SUPABASE CONFIG: paste your Project URL and publishable key (never a secret/service-role key) ===== */
+const SB_URL='YOUR_SUPABASE_PROJECT_URL',SB_KEY='YOUR_SUPABASE_PUBLISHABLE_KEY';
+const sb=(!SB_URL.startsWith('YOUR_')&&!SB_KEY.startsWith('YOUR_')&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
+const mk=()=>({p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},week:1,log:[],rev:[],map:{}});
+const norm=x=>{x=x&&typeof x=='object'?x:{};return{p:{...mk().p,...(x.p||{})},week:+x.week||1,log:Array.isArray(x.log)?x.log:[],rev:Array.isArray(x.rev)?x.rev:[],map:x.map&&typeof x.map=='object'?x.map:{}}};
+const rd=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const hasData=x=>x&&((x.log||[]).length||(x.rev||[]).length||Object.values(x.map||{}).some(Boolean));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+let S=norm(rd('sm')),USER=null,READY=false,AUTH=sb?'init':'ready',SYNC=sb?'':'local',MSG='',T=null,LEG=null,lastUid;
+const key=()=>USER?'sm_'+USER.id:'sm';
+function setSync(s){SYNC=s;const e=$('#sync');if(e){e.textContent={saving:'Saving…',saved:'Saved to cloud',error:'Save failed – tap to retry',loading:'Loading…',local:'Local only'}[s]||'';e.style.color=s=='error'?'var(--red)':'var(--mu)';e.style.cursor=s=='error'?'pointer':''}}
+function retry(){if(SYNC=='error')pushNow()}
+const save=()=>{try{localStorage.setItem(key(),JSON.stringify(S))}catch(e){}if(USER&&READY){clearTimeout(T);setSync('saving');T=setTimeout(pushNow,800)}};
+async function pushNow(){if(!USER||!READY)return;clearTimeout(T);T=null;setSync('saving');
+ const{error}=await sb.from('user_progress').upsert({user_id:USER.id,progress:JSON.parse(JSON.stringify(S)),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+ if(error){MSG=error.message;setSync('error')}else if(!T)setSync('saved')}
+async function loadCloud(){AUTH='loading';READY=false;render();setSync('loading');
+ const{data,error}=await sb.from('user_progress').select('progress').eq('user_id',USER.id).maybeSingle();
+ if(error){AUTH='error';MSG=error.message;setSync('');render();return}
+ LEG=rd('sm');LEG=hasData(LEG)&&!localStorage.getItem('sm_mig_'+USER.id)?norm(LEG):null;
+ if(data){S=norm(data.progress);READY=true;setSync('saved')}
+ else if(LEG){S=mk();setSync('')}
+ else{S=mk();READY=true;await pushNow()}
+ AUTH='ready';render()}
+function merge(a,b){const o=norm(a),k=new Set(o.log.map(l=>l.id+l.date)),r=new Set(o.rev.map(x=>JSON.stringify(x)));b.log.forEach(l=>{if(!k.has(l.id+l.date))o.log.push(l)});b.rev.forEach(x=>{if(!r.has(JSON.stringify(x)))o.rev.push(x)});Object.entries(b.map).forEach(([i,v])=>{if(v)o.map[i]=true});return o}
+async function mig(c){if(c=='merge'){const fresh=!hasData(S)&&JSON.stringify(S.p)==JSON.stringify(mk().p);const L=LEG;S=merge(S,L);if(fresh){S.p=L.p;S.week=L.week}}
+ localStorage.setItem('sm_mig_'+USER.id,'1');LEG=null;READY=true;await pushNow();render()}
+function signedOut(){USER=null;READY=false;LEG=null;S=norm(rd('sm'));AUTH='ready';setSync('');render()}
+function initAuth(){if(!sb)return;sb.auth.onAuthStateChange((ev,s)=>setTimeout(()=>{const u=s&&s.user||null,id=u?u.id:null;if(id===lastUid&&AUTH!='init')return;lastUid=id;USER=u;if(u)loadCloud();else signedOut()},0))}
+async function acct(ev,mode){ev.preventDefault();const f=ev.target.form||ev.target;if(!f.reportValidity())return;const b=$('#aerr'),em=f.email.value.trim(),pw=f.password.value;b.textContent='Working…';
+ const r=mode=='up'?await sb.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.origin+location.pathname}}):await sb.auth.signInWithPassword({email:em,password:pw});
+ if(r.error){b.textContent=r.error.message;return}
+ b.textContent=(mode=='up'&&!r.data.session)?'Check your email to confirm your account, then log in.':''}
+async function out(){if(SYNC=='error'&&!confirm('Your latest changes are not saved to the cloud. Log out anyway?'))return;await pushNow();await sb.auth.signOut()}
+function gate(){if(!sb)return'';const c=t=>`<div class="card r" style="margin-top:20px">${t}</div>`;
+ if(AUTH=='init'||AUTH=='loading')return c('<b>Loading your progress…</b>');
+ if(AUTH=='error')return c(`<b>Could not load your cloud progress.</b><p class="mu">${esc(MSG)}</p><p class="mu">Nothing was changed. Saving is paused so your cloud data cannot be overwritten.</p><div class="row"><button class="p" onclick="loadCloud()">Retry</button><button onclick="out()">Log out</button></div>`);
+ if(USER&&LEG)return c(`<b>Browser progress found on this device</b><p class="mu">${LEG.log.length} drill log(s), ${LEG.rev.length} match review(s). Merge it into your account? Existing cloud data is kept and duplicates are skipped. Your browser copy is never deleted.</p><div class="row"><button class="p" onclick="mig('merge')">Merge into my account</button><button onclick="mig('skip')">Skip</button></div>`);return''}
+addEventListener('visibilitychange',()=>{if(document.hidden&&T)pushNow()});
 const today=()=>new Date().toISOString().slice(0,10);
 const done=id=>S.log.some(l=>l.id==id&&l.date==today());
 const $=s=>document.querySelector(s);
-const PAGES=['home','dashboard','aim','mechanics','gamesense','maps','programs','review','progress','settings'];
-const LBL={home:'Home',dashboard:'Dashboard',aim:'Aim',mechanics:'Mechanics',gamesense:'Game Sense',maps:'Maps',programs:'Programs',review:'Review',progress:'Progress',settings:'Settings'};
+const PAGES=['home','dashboard','aim','mechanics','gamesense','maps','programs','review','progress','settings','account'];
+const LBL={home:'Home',dashboard:'Dashboard',aim:'Aim',mechanics:'Mechanics',gamesense:'Game Sense',maps:'Maps',programs:'Programs',review:'Review',progress:'Progress',settings:'Settings',account:'Account'};
 function plan(){const n={15:2,30:4,45:6}[S.p.time]||4;const w=WEEKS[S.week-1].d;const extra=ROLES[S.p.role][1].filter(x=>!w.includes(x));return [...w,...extra].slice(0,n)}
 function streak(){const ds=new Set(S.log.map(l=>l.date));let c=0,d=new Date();if(!ds.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);while(ds.has(d.toISOString().slice(0,10))){c++;d.setDate(d.getDate()-1)}return c}
 function drill(d){const c=done(d.id);const l=S.log.filter(x=>x.id==d.id);return `<details><summary><input type="checkbox" ${c?'checked':''} data-d="${d.id}" onclick="event.stopPropagation()"><b>${d.t}</b><span class="tag">${d.diff}</span><span class="tag">${d.dur} min</span><span class="tag">${d.reps}</span></summary><div class="in"><h4>Objective</h4>${d.obj}<h4>Where</h4>${d.loc}<h4>Steps</h4><ol>${d.steps.map(s=>`<li>${s}</li>`).join('')}</ol><h4>Mistakes to watch</h4>${d.mist}<h4>How to measure</h4>${d.meas}<h4>Platform note</h4>${PLAT[S.p.platform]}<div class="row"><span class="mu">Self-rating</span><select data-r="${d.id}">${[0,1,2,3,4,5].map(i=>`<option value="${i}" ${(l.length&&l[l.length-1].rating==i)?'selected':''}>${i||'–'}</option>`).join('')}</select><span class="mu">${l.length} completion(s)</span></div></div></details>`}
@@ -80,10 +117,14 @@ programs:()=>hdr('Training programs','Four-week ranked improvement program plus 
 review:()=>hdr('Match review','You enter the data yourself; Siege data is not read automatically.')+`<form id="rf" class="card"><div class="grid">${[['map','Map'],['op','Operator']].map(f=>`<div><label class="f">${f[1]}</label><input name="${f[0]}" required style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"></div>`).join('')}${[['k','Kills'],['d','Deaths'],['a','Assists'],['w','Rounds won'],['l','Rounds lost'],...RM.map(r=>[r[0],r[1]])].map(f=>`<div><label class="f">${f[1]}</label><input type="number" min="0" name="${f[0]}" value="0" style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"></div>`).join('')}</div><div class="row"><button class="p">Save review</button></div></form><div id="sum"></div>`,
 progress:()=>{const rs=S.log.filter(l=>l.rating);const tot=agg();const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0);const best={};S.log.forEach(l=>{if(l.rating&&(!best[l.id]||l.rating>best[l.id]))best[l.id]=l.rating});
 return hdr('Progress','Only your recorded data is shown.')+(S.log.length||S.rev.length?`<div class="grid"><div class="card">Drills completed<div class="big">${S.log.length}</div></div><div class="card">Active days<div class="big">${new Set(S.log.map(l=>l.date)).size}</div></div><div class="card">Avg rating<div class="big">${rs.length?(rs.reduce((a,b)=>a+b.rating,0)/rs.length).toFixed(1):'–'}</div></div></div><h2>Personal bests (highest self-rating)</h2>${Object.keys(best).length?Object.entries(best).map(([k,v])=>`<div class="card" style="margin-bottom:6px">${byId[k].t}: ${v}/5</div>`).join(''):'<div class="empty">Rate a drill to record a best.</div>'}<h2>Most frequent mistakes</h2>${top.length?top.map(x=>`<div class="card" style="margin-bottom:6px">${RM.find(r=>r[0]==x[0])[1]}: ${x[1]} total over ${S.rev.length} review(s)</div>`).join(''):'<div class="empty">No review data.</div>'}<h2>Match reviews</h2><div class="scroll">${S.rev.length?S.rev.map(r=>`<div class="card" style="margin-bottom:6px">${r.date} · ${r.map} · ${r.op} · ${r.k}/${r.d}/${r.a} · ${r.w}-${r.l}</div>`).join(''):'<div class="empty">No reviews yet.</div>'}</div>`:'<div class="empty">Nothing recorded yet. Complete a drill or save a match review.</div>')},
+account:()=>{if(!sb)return hdr('Account','Cloud saving is not configured.')+'<div class="card">Add your Supabase Project URL and publishable key at the top of the script. Until then, progress is saved in this browser only.</div>';
+if(USER)return hdr('Account','Signed in as '+esc(USER.email))+`<div class="card r">Your progress syncs automatically to your account.<div class="row"><button onclick="out()">Log out</button></div></div>`;
+const i='style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"';
+return hdr('Account','Log in or sign up to save progress to the cloud and use it on any device.')+`<form class="card" style="max-width:380px" onsubmit="acct(event,'in')"><label class="f">Email</label><input name="email" type="email" required ${i}><label class="f">Password (min 6 characters)</label><input name="password" type="password" minlength="6" required ${i}><div class="row"><button class="p">Log in</button><button type="button" onclick="acct(event,'up')">Sign up</button></div><p id="aerr" class="note" style="color:var(--red)"></p></form>`},
 settings:()=>{const o=(k,v)=>`<select data-s="${k}" style="width:100%">${v.map(x=>`<option ${S.p[k]==(Array.isArray(x)?x[0]:x)?'selected':''} value="${Array.isArray(x)?x[0]:x}">${Array.isArray(x)?x[1]:x}</option>`).join('')}</select>`;
 return hdr('Settings','Questionnaire and plan setup.')+`<div class="card grid">${[['Platform',o('platform',['PC','PlayStation','Xbox'])],['Experience',o('exp',['Beginner','Intermediate','Advanced'])],['Rank / skill level',o('rank',['Copper–Bronze','Silver','Gold','Platinum','Emerald','Diamond+'])],['Main weakness',o('weak',['Aim','Mechanics','Game sense','Consistency'])],['Playstyle',o('role',Object.entries(ROLES).map(([k,v])=>[k,v[0]]))],['Training time',o('time',[[15,'15 min'],[30,'30 min'],[45,'45 min']])],['Preferred mode',o('mode',['Shooting Range','Training Grounds','Custom Game','Quick Match'])]].map(f=>`<div><label class="f">${f[0]}</label>${f[1]}</div>`).join('')}</div><p class="note">Saved automatically in this browser only (no accounts or sync in this version).</p><div class="row"><button id="rs">Reset all data</button></div>`}};
 function agg(){const t={};RM.forEach(r=>t[r[0]]=0);S.rev.forEach(r=>RM.forEach(m=>t[m[0]]+=+r[m[0]]||0));return t}
-function render(){const h=(location.hash||'#home').slice(1);const pg=PAGES.includes(h)?h:'home';$('#nav').innerHTML='<span class="logo">SIEGE <b>METHOD</b></span>'+PAGES.map(p=>`<a href="#${p}" class="${p==pg?'on':''}">${LBL[p]}</a>`).join('');$('#app').innerHTML=R[pg]();bind();scrollTo(0,0)}
+function render(){const h=(location.hash||'#home').slice(1);const pg=PAGES.includes(h)?h:'home';$('#nav').innerHTML='<span class="logo">SIEGE <b>METHOD</b></span>'+PAGES.map(p=>`<a href="#${p}" class="${p==pg?'on':''}">${LBL[p]}</a>`).join('')+'<span id="sync" class="note" onclick="retry()" style="margin-left:auto;padding-left:12px"></span>';$('#app').innerHTML=gate()||R[pg]();setSync(SYNC);bind();scrollTo(0,0)}
 window.go=p=>location.hash=p;
 function bind(){document.querySelectorAll('[data-d]').forEach(e=>e.onchange=()=>{const id=e.dataset.d;if(e.checked)S.log.push({id,date:today(),rating:0});else{const i=S.log.map(l=>l.id==id&&l.date==today()).lastIndexOf(true);if(i>-1)S.log.splice(i,1)}save();render()});
 document.querySelectorAll('[data-r]').forEach(e=>e.onchange=()=>{const id=e.dataset.r;let l=S.log.filter(x=>x.id==id);if(!l.length){alert('Mark the drill complete first.');e.value=0;return}l[l.length-1].rating=+e.value;save()});
@@ -92,5 +133,5 @@ document.querySelectorAll('[data-w]').forEach(e=>e.onclick=()=>{S.week=+e.datase
 document.querySelectorAll('[data-s]').forEach(e=>e.onchange=()=>{S.p[e.dataset.s]=e.dataset.s=='time'?+e.value:e.value;save();render()});
 const rs=$('#rs');if(rs)rs.onclick=()=>{if(confirm('Delete all saved data?')){S={p:S.p,week:1,log:[],rev:[],map:{}};save();render()}};
 const f=$('#rf');if(f)f.onsubmit=ev=>{ev.preventDefault();const o={date:today()};new FormData(f).forEach((v,k)=>o[k]=isNaN(v)||k=='map'||k=='op'?String(v).replace(/[<>&]/g,''):+v);S.rev.push(o);save();const t=agg(),top=RM.filter(r=>t[r[0]]>0).sort((a,b)=>t[b[0]]-t[a[0]]).slice(0,3);$('#sum').innerHTML='<h2>Summary</h2><div class="card r">'+(top.length?`Across ${S.rev.length} review(s), your most recurring issues: ${top.map(r=>`${r[1].toLowerCase()} (${t[r[0]]})`).join(', ')}.<br><br>Recommended drills:<ul>${[...new Set(top.flatMap(r=>r[2]))].map(i=>`<li>${byId[i].t}</li>`).join('')}</ul>`:'No mistakes entered, so no weakness can be identified.')+'</div>'}}
-addEventListener('hashchange',render);render();
+addEventListener('hashchange',render);render();initAuth();
 </script></body></html>

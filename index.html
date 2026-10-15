@@ -1,390 +1,137 @@
-
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b10">
-  <title>FEIN METHOD — Initializing</title>
-  <style>
-    :root {
-      --bg: #080b10;
-      --panel: #0d121a;
-      --line: #202b38;
-      --text: #f1f5f9;
-      --muted: #8793a3;
-      --accent: #9bff4d;
-      --accent-soft: rgba(155, 255, 77, .12);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body { min-height: 100%; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(ellipse at 50% 42%, rgba(49, 91, 59, .17), transparent 36%),
-        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
-        var(--bg);
-      background-size: auto, 44px 44px, 44px 44px, auto;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      overflow: hidden;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.45));
-    }
-
-    .topbar {
-      height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 clamp(20px, 5vw, 76px);
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      position: relative;
-      z-index: 1;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      letter-spacing: .14em;
-      font-weight: 850;
-    }
-
-    .mark {
-      width: 31px;
-      height: 31px;
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-size: 15px;
-      transform: rotate(45deg);
-      box-shadow: 0 0 22px rgba(155,255,77,.12);
-    }
-
-    .mark span { transform: rotate(-45deg); }
-    .brand-name { font-size: 14px; }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
-    }
-
-    main {
-      position: relative;
-      z-index: 1;
-      min-height: calc(100vh - 132px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 50px 22px 70px;
-    }
-
-    .loader {
-      width: min(720px, 100%);
-      text-align: center;
-      animation: enter .8s ease both;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--accent);
-      font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-      letter-spacing: .24em;
-      text-transform: uppercase;
-      border: 1px solid rgba(155,255,77,.25);
-      background: var(--accent-soft);
-      padding: 9px 13px;
-      border-radius: 3px;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 5px;
-      height: 5px;
-      background: var(--accent);
-    }
-
-    h1 {
-      margin: 28px 0 15px;
-      font-size: clamp(42px, 8vw, 82px);
-      line-height: .96;
-      letter-spacing: -.065em;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-
-    h1 span { color: var(--accent); }
-
-    .description {
-      color: var(--muted);
-      font-size: clamp(14px, 2vw, 17px);
-      line-height: 1.7;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .console {
-      margin: 42px auto 0;
-      width: min(480px, 100%);
-      padding: 18px 20px 20px;
-      text-align: left;
-      background: rgba(13,18,26,.82);
-      border: 1px solid var(--line);
-      box-shadow: 0 18px 65px rgba(0,0,0,.24);
-    }
-
-    .console-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 17px;
-    }
-
-    .console-label, .percent {
-      font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
-      letter-spacing: .13em;
-      text-transform: uppercase;
-    }
-
-    .console-label { color: var(--muted); }
-    .percent { color: var(--accent); }
-
-    .track {
-      height: 5px;
-      width: 100%;
-      background: #202a35;
-      overflow: hidden;
-    }
-
-    .fill {
-      height: 100%;
-      width: 0;
-      background: var(--accent);
-      box-shadow: 0 0 16px rgba(155,255,77,.55);
-      animation: load 5s cubic-bezier(.25,.7,.2,1) forwards;
-    }
-
-    .steps {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 15px;
-      color: #596574;
-      font: 9px ui-monospace, SFMono-Regular, Menlo, monospace;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-
-    .steps span:first-child { color: var(--accent); }
-
-    .bottom-note {
-      margin-top: 27px;
-      color: #657181;
-      font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-    }
-
-    footer {
-      position: relative;
-      z-index: 1;
-      min-height: 56px;
-      padding: 18px 22px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-top: 1px solid rgba(255,255,255,.07);
-      color: #586270;
-      text-align: center;
-      font-size: 10px;
-      letter-spacing: .08em;
-    }
-
-    .corner {
-      position: fixed;
-      z-index: 1;
-      width: 34px;
-      height: 34px;
-      border-color: rgba(155,255,77,.35);
-      border-style: solid;
-      pointer-events: none;
-    }
-
-    .tl { top: 96px; left: 25px; border-width: 1px 0 0 1px; }
-    .tr { top: 96px; right: 25px; border-width: 1px 1px 0 0; }
-    .bl { bottom: 76px; left: 25px; border-width: 0 0 1px 1px; }
-    .br { bottom: 76px; right: 25px; border-width: 0 1px 1px 0; }
-
-    @keyframes load {
-      0% { width: 0; }
-      20% { width: 24%; }
-      55% { width: 61%; }
-      82% { width: 86%; }
-      100% { width: 100%; }
-    }
-
-    @keyframes enter {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-      }
-
-      .fill { width: 100%; }
-    }
-
-    @media (max-width: 520px) {
-      .topbar { height: 64px; }
-
-      .status {
-        font-size: 9px;
-        letter-spacing: .1em;
-      }
-
-      .console {
-        margin-top: 32px;
-        padding: 15px;
-      }
-
-      .steps { font-size: 8px; }
-      .corner { display: none; }
-    }
-  </style>
-</head>
-
-<body>
-  <header class="topbar">
-    <div class="brand" aria-label="Fein Method">
-      <div class="mark"><span>F</span></div>
-      <div class="brand-name">FEIN METHOD</div>
-    </div>
-
-    <div class="status">
-      <span class="dot"></span>
-      System ready
-    </div>
-  </header>
-
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
-
-  <main>
-    <section class="loader" aria-label="Loading screen">
-      <div class="eyebrow">Training interface / online</div>
-
-      <h1>
-        FOCUS.<br>
-        <span>REFINE.</span><br>
-        ASCEND.
-      </h1>
-
-      <p class="description">
-        A focused environment for deliberate practice, sharper mechanics,
-        and measurable progress. Prepare your session.
-      </p>
-
-      <div class="console" role="status" aria-live="polite">
-        <div class="console-head">
-          <span class="console-label" id="load-message">
-            Initializing training interface
-          </span>
-          <span class="percent" id="percent">00%</span>
-        </div>
-
-        <div class="track">
-          <div class="fill" id="fill"></div>
-        </div>
-
-        <div class="steps">
-          <span>01 / Initialize</span>
-          <span>02 / Calibrate</span>
-          <span>03 / Ready</span>
-        </div>
-      </div>
-
-      <div class="bottom-note">
-        Stay consistent. Trust the process.
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    © <span id="year">2026</span>&nbsp; FEIN METHOD. All rights reserved.
-  </footer>
-
-  <script>
-    // Front-end loading-screen demo.
-    // Connect your app here if this should load another page.
-
-    const percent = document.getElementById('percent');
-    const message = document.getElementById('load-message');
-    const start = performance.now();
-    const duration = 5000;
-
-    document.getElementById('year').textContent =
-      new Date().getFullYear();
-
-    function updateLoading(now) {
-      const progress = Math.min(
-        100,
-        Math.floor(((now - start) / duration) * 100)
-      );
-
-      percent.textContent =
-        String(progress).padStart(2, '0') + '%';
-
-      if (progress < 30) {
-        message.textContent = 'Initializing training interface';
-      } else if (progress < 70) {
-        message.textContent = 'Calibrating session environment';
-      } else if (progress < 100) {
-        message.textContent = 'Preparing your workspace';
-      } else {
-        message.textContent = 'Interface ready';
-      }
-
-      if (progress < 100) {
-        requestAnimationFrame(updateLoading);
-      }
-    }
-
-    requestAnimationFrame(updateLoading);
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><title>SIEGE METHOD</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#0b0b0d;--card:#16161a;--line:#2a2a31;--tx:#ececf0;--mu:#9a9aa6;--red:#e5233b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f2f2f4;--card:#fff;--line:#d9d9e0;--tx:#16161a;--mu:#5d5d68}}
+:root[data-theme="dark"]{--bg:#0b0b0d;--card:#16161a;--line:#2a2a31;--tx:#ececf0;--mu:#9a9aa6;--red:#e5233b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,Segoe UI,sans-serif}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:4px;padding:8px 12px;overflow-x:auto;white-space:nowrap}
+.logo{font-weight:900;letter-spacing:.18em;margin-right:12px}.logo b{color:var(--red)}
+nav a{color:var(--mu);text-decoration:none;padding:6px 10px;border-radius:4px;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+nav a.on{color:var(--tx);background:var(--card);box-shadow:inset 0 -2px var(--red)}
+main{max-width:1000px;margin:0 auto;padding:20px 14px 60px;animation:f .3s}@keyframes f{from{opacity:0;transform:translateY(6px)}}
+h1{font-size:28px;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}h2{font-size:15px;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);margin:22px 0 10px}
+.sub{color:var(--mu);margin:0 0 16px}.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px;border-left:3px solid var(--line)}.card.r{border-left-color:var(--red)}
+.big{font-size:30px;font-weight:800}.mu{color:var(--mu);font-size:13px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--red);transition:width .5s}
+button,select{font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:4px;padding:8px 12px;cursor:pointer}
+button.p{background:var(--red);border-color:var(--red);color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:3px;padding:1px 6px;color:var(--mu);margin:0 4px 4px 0}
+details{background:var(--card);border:1px solid var(--line);border-radius:6px;margin-bottom:10px}summary{padding:12px;cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+summary b{flex:1;min-width:150px}.in{padding:0 14px 14px}.in h4{margin:12px 0 4px;color:var(--red);font-size:12px;text-transform:uppercase;letter-spacing:.1em}.in ol,.in ul{margin:0;padding-left:20px}
+label.f{display:block;margin:10px 0 3px;color:var(--mu);font-size:13px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.pills button.on{background:var(--red);border-color:var(--red);color:#fff}input[type=checkbox]{accent-color:var(--red);width:18px;height:18px}
+.scroll{overflow-x:auto}.empty{border:1px dashed var(--line);border-radius:6px;padding:20px;text-align:center;color:var(--mu)}
+.hero{padding:40px 0 10px}.hero h1{font-size:44px}.note{font-size:12px;color:var(--mu)}
+</style></head><body>
+<nav id="nav"></nav><main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const D=(id,cat,t,diff,dur,reps,loc,obj,steps,mist,meas)=>({id,cat,t,diff,dur,reps,loc,obj,steps,mist,meas});
+const DR=[
+D('cp','aim','Crosshair Placement','Beginner',5,'3 runs','Shooting Range, or Custom Game on a map you know','Keep your crosshair at head height wherever an enemy is likely to appear.',['Pick a room with a doorway and walk its approach path.','At each corner or door, stop and check your crosshair is at head height before moving on.','Pre-aim the spots a defender would hold; clear the angles one at a time.','Repeat the route 3 times; rate how often you had to adjust up or down.'],'Looking at the floor while moving; crosshair drifting low after stairs or leaning; clearing all angles at once.','Count out of ~10 corners how many times your crosshair was already at head height. Aim to raise it each session.'),
+D('flick','aim','Flick Accuracy','Intermediate',8,'5 sets of 10','Shooting Range or Training Grounds (use whatever target options your version offers)','Move between separate targets and land accurate first shots.',['Choose targets spread at different distances and angles.','Flick to a target, settle, then fire one shot. Accuracy before speed.','After a clean set, add difficulty: more distance or less reaction time, as your available settings allow.','Note hits out of 10 for each set.'],'Overflicking past the target; firing while still moving; sacrificing every shot for speed.','Hits per 10 attempts. Track the best score at a given distance.'),
+D('track','aim','Target Tracking','Intermediate',6,'4 sets of 1 min','Training Grounds if moving targets are available, otherwise a Custom Game or Quick Match teammate/drone in the range','Follow a moving target with smooth corrections.',['Find a moving target (check what your Training Grounds options provide; if none, do not assume).','Keep the crosshair on the head and make small corrections.','Fire controlled bursts rather than spraying.'],'Chasing with big jerks; stopping your hands mid-track; spraying.','Estimate share of bursts that landed on the head; self-rate 1-5.'),
+D('recoil','aim','Recoil Control','Beginner',8,'4 mags at 3 ranges','Shooting Range: wall or target at a fixed distance','Learn your weapon\'s pattern and repeat the pull-down.',['Pick one weapon and attachments you actually play.','Stand at one distance and empty a magazine into a wall; watch the pattern.','Repeat, compensating for it. Move back/forward and test again.','Do bursts and short sprays, not only full mags.'],'Switching weapons every run; compensating too late; ignoring burst fire.','Spread of the bullet holes: tighter group = better. Compare against your first run.'),
+D('fsa','aim','First-Shot Accuracy','Beginner',6,'30 shots','Shooting Range or Training Grounds','Acquire, settle, and fire the first shot cleanly.',['Start with the crosshair off target.','Acquire the head, let it settle, fire one shot.','Reset and repeat; do not spray after missing.'],'Firing before settling; panic follow-up shots.','First-shot hits out of 30.'),
+D('strafe','mech','Strafing & Stopping','Beginner',7,'10 reps per side','Shooting Range or Training Grounds','Stop before you shoot, and strafe between cover without wide swings.',['Strafe left/right between two pieces of cover.','Stop fully, then fire a burst at a target.','Repeat; avoid wide, loose swings off cover.'],'Shooting while sliding; over-strafing into the open.','Share of bursts fired while stationary and on target.'),
+D('peek','mech','Peeking','Intermediate',10,'15 peeks across angle types','Custom Game or Training Grounds with a teammate or a held angle','Use the right peek: tight, info, or wide, and avoid predictable re-peeks.',['Tight-angle peek: expose minimal body, check, retreat.','Info peek: quick look, then reposition.','Wide swing: only when you have a reason (flash, trade, time).','Vary the timing and side of each re-peek.'],'Peeking the same spot at the same rhythm; exposing too much body.','Count peeks where you saw the enemy before they saw you.'),
+D('lean','mech','Leaning','Intermediate',6,'10 per side','Shooting Range or Custom Game','Lean while keeping crosshair placement.',['Lean left and right while holding head level.','Notice when leaning makes you slower or predictable.','Compare a lean peek to a physical peek at the same angle.'],'Leaning every time; losing head level when you lean.','Crosshair stays on head height in X of 10 leans.'),
+D('fight','mech','Recoil & Gunfights','Intermediate',10,'10 engagements','Custom Game or Quick Match','Take gunfights from cover and reset between engagements.',['Fight from behind cover rather than in the open.','Control recoil in bursts; strafe only when it helps.','After each fight, reset position and reload before the next angle.'],'Standing in the open; reloading mid-fight when avoidable.','Self-rate: fights taken from cover out of 10.'),
+D('opm','mech','Operator Mechanics','Intermediate',10,'3 rounds','Quick Match, Custom Game or Training Grounds','Drone before entry and place gadgets with purpose.',['Drone the area before you enter.','Use gadgets before committing to a fight.','Review placement and timing: did it help?'],'Entering without information; wasting gadgets.','Rounds where you droned or used utility before entering, out of 3.'),
+D('snd','gs','Sound Awareness','Beginner',10,'1 match or Custom Game','Quick Match or Custom Game with headphones/headset','Identify footsteps, reloads, barricade destruction, gadgets and fights.',['Close your eyes for 20 seconds in a quiet room and name sounds.','Note distance and floors/walls changing the sound.','Verify what you heard by calling the position.'],'Treating all sound as exact position; ignoring walls/floors.','Calls you checked later: how many were right?'),
+D('drn','gs','Droning','Beginner',10,'3 rounds','Quick Match or Custom Game','Gather information and keep drones alive.',['Scout before entering; note defenders, gadgets and safe routes.','Avoid assumptions: confirm.','Keep drones alive when you can.'],'Rushing in without checking; losing drones early.','Drones alive at round end; entries made with info.'),
+D('dec','gs','Decision-Making','Intermediate',15,'2 matches','Quick Match, Ranked or Custom Game','Decide: take, disengage, rotate, hold, push or wait.',['Before each fight ask: time left, player advantage, objective, utility.','Choose a clear option and note why.','After the round, say whether it improved the win chance.'],'Reacting emotionally; taking low-value fights.','Self-rate decisions 1-5 per match.'),
+D('atkdef','gs','Attack vs. Defense','Intermediate',15,'2 rounds each side','Quick Match, Ranked or Custom Game','Attack: map control, clear, utility, execute with time. Defend: crossfires, utility, avoid isolated fights.',['Attack: take map control, clear threats, then execute with enough time left.','Defend: pick useful positions and keep crossfires.','Avoid isolated fights.'],'Executing too late; isolating yourself on defense.','Rounds where you followed the plan.'),
+D('clutch','gs','Clutch Scenarios','Advanced',10,'3 clutch rounds','Quick Match or Ranked','Use position, objective and timer to clutch.',['Identify enemy positions from info and sound.','Use the timer and objective to choose.','Avoid unnecessary fights; review each action.'],'Chasing kills over the objective.','Clutches attempted and actions you judge good.'),
+D('rot','gs','Rotations & Positioning','Intermediate',10,'1 match','Quick Match or Custom Game','Rotate and hold with purpose.',['Choose rotations based on information and time.','Check whether your position supports teammates.'],'Rotating on noise alone; leaving your site empty.','Rotations that put you in a useful position.'),
+D('map','gs','Map Knowledge','Beginner',10,'1 map per week','Custom Game on a single map','Learn one map: rooms, stairs, rotations, entries, bomb sites.',['Walk the map; name rooms without compass.','Learn stair routes and entry points.','Check the Map Knowledge checklist.'],'Learning many maps at once.','Rooms you can name without hints.')
+];
+const byId=Object.fromEntries(DR.map(d=>[d.id,d]));
+const WEEKS=[{n:'Fundamentals',d:['cp','recoil','strafe','map']},{n:'Mechanics',d:['peek','strafe','fsa','opm']},{n:'Game Sense',d:['snd','rot','atkdef','dec']},{n:'Ranked Application',d:['clutch','fight','dec','atkdef']}];
+const ROLES={entry:['Entry fragger',['cp','flick','peek','fight']],support:['Support',['opm','drn','snd','dec']],roamer:['Roamer',['snd','rot','peek','clutch']],anchor:['Anchor',['cp','recoil','snd','atkdef']],flex:['Flex',['cp','fsa','dec','atkdef']]};
+const MISSIONS=['Win one gunfight from cover today.','Drone before every entry for a full match.','Keep your crosshair at head height for a whole round.','Call out three sounds you actually confirmed.','Do not take a fight you can disengage from.'];
+const MAPCHK=['Name every room on the floor plan without the compass','Know the main stair routes','Know common entry points','Know both bomb site layouts for one site','Know two rotation routes for each side','Play one Custom Game just walking the map'];
+const PLAT={PC:'PC: adjust mouse sensitivity and ADS settings to what feels consistent.',PlayStation:'PlayStation: use controller sensitivity/aim settings, not mouse values.',Xbox:'Xbox: use controller sensitivity/aim settings, not mouse values.'};
+const RM=[['pos','Deaths from poor positioning',['atkdef','rot']],['xh','Missed shots / poor crosshair placement',['cp','fsa']],['drone','Missed drone information',['drn','opm']],['peek','Bad peeks',['peek','lean']],['util','Poor utility usage',['opm','dec']],['mis','Attack/defense mistakes',['dec','clutch']]];
+/* ===== SUPABASE CONFIG: paste your Project URL and publishable key (never a secret/service-role key) ===== */
+const SB_URL='https://eqluyrgxyfzxxpwpyloa.supabase.co',SB_KEY='sb_publishable_F-NqjLBpC14hzQr_mA_OWQ_TRcz6r17';
+const sb=(!SB_URL.startsWith('YOUR_')&&!SB_KEY.startsWith('YOUR_')&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
+const mk=()=>({p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},week:1,log:[],rev:[],map:{}});
+const norm=x=>{x=x&&typeof x=='object'?x:{};return{p:{...mk().p,...(x.p||{})},week:+x.week||1,log:Array.isArray(x.log)?x.log:[],rev:Array.isArray(x.rev)?x.rev:[],map:x.map&&typeof x.map=='object'?x.map:{}}};
+const rd=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const hasData=x=>x&&((x.log||[]).length||(x.rev||[]).length||Object.values(x.map||{}).some(Boolean));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+let S=norm(rd('sm')),USER=null,READY=false,AUTH=sb?'init':'ready',SYNC=sb?'':'local',MSG='',T=null,LEG=null,lastUid;
+const key=()=>USER?'sm_'+USER.id:'sm';
+function setSync(s){SYNC=s;const e=$('#sync');if(e){e.textContent={saving:'Saving…',saved:'Saved to cloud',error:'Save failed – tap to retry',loading:'Loading…',local:'Local only'}[s]||'';e.style.color=s=='error'?'var(--red)':'var(--mu)';e.style.cursor=s=='error'?'pointer':''}}
+function retry(){if(SYNC=='error')pushNow()}
+const save=()=>{try{localStorage.setItem(key(),JSON.stringify(S))}catch(e){}if(USER&&READY){clearTimeout(T);setSync('saving');T=setTimeout(pushNow,800)}};
+async function pushNow(){if(!USER||!READY)return;clearTimeout(T);T=null;setSync('saving');
+ const{error}=await sb.from('user_progress').upsert({user_id:USER.id,progress:JSON.parse(JSON.stringify(S)),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+ if(error){MSG=error.message;setSync('error')}else if(!T)setSync('saved')}
+async function loadCloud(){AUTH='loading';READY=false;render();setSync('loading');
+ const{data,error}=await sb.from('user_progress').select('progress').eq('user_id',USER.id).maybeSingle();
+ if(error){AUTH='error';MSG=error.message;setSync('');render();return}
+ LEG=rd('sm');LEG=hasData(LEG)&&!localStorage.getItem('sm_mig_'+USER.id)?norm(LEG):null;
+ if(data){S=norm(data.progress);READY=true;setSync('saved')}
+ else if(LEG){S=mk();setSync('')}
+ else{S=mk();READY=true;await pushNow()}
+ AUTH='ready';render()}
+function merge(a,b){const o=norm(a),k=new Set(o.log.map(l=>l.id+l.date)),r=new Set(o.rev.map(x=>JSON.stringify(x)));b.log.forEach(l=>{if(!k.has(l.id+l.date))o.log.push(l)});b.rev.forEach(x=>{if(!r.has(JSON.stringify(x)))o.rev.push(x)});Object.entries(b.map).forEach(([i,v])=>{if(v)o.map[i]=true});return o}
+async function mig(c){if(c=='merge'){const fresh=!hasData(S)&&JSON.stringify(S.p)==JSON.stringify(mk().p);const L=LEG;S=merge(S,L);if(fresh){S.p=L.p;S.week=L.week}}
+ localStorage.setItem('sm_mig_'+USER.id,'1');LEG=null;READY=true;await pushNow();render()}
+function signedOut(){USER=null;READY=false;LEG=null;S=norm(rd('sm'));AUTH='ready';setSync('');render()}
+function initAuth(){if(!sb)return;sb.auth.onAuthStateChange((ev,s)=>setTimeout(()=>{const u=s&&s.user||null,id=u?u.id:null;if(id===lastUid&&AUTH!='init')return;lastUid=id;USER=u;if(u)loadCloud();else signedOut()},0))}
+async function acct(ev,mode){ev.preventDefault();const f=ev.target.form||ev.target;if(!f.reportValidity())return;const b=$('#aerr'),em=f.email.value.trim(),pw=f.password.value;b.textContent='Working…';
+ const r=mode=='up'?await sb.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.origin+location.pathname}}):await sb.auth.signInWithPassword({email:em,password:pw});
+ if(r.error){b.textContent=r.error.message;return}
+ b.textContent=(mode=='up'&&!r.data.session)?'Check your email to confirm your account, then log in.':''}
+async function out(){if(SYNC=='error'&&!confirm('Your latest changes are not saved to the cloud. Log out anyway?'))return;await pushNow();await sb.auth.signOut()}
+function gate(){if(!sb)return'';const c=t=>`<div class="card r" style="margin-top:20px">${t}</div>`;
+ if(AUTH=='init'||AUTH=='loading')return c('<b>Loading your progress…</b>');
+ if(AUTH=='error')return c(`<b>Could not load your cloud progress.</b><p class="mu">${esc(MSG)}</p><p class="mu">Nothing was changed. Saving is paused so your cloud data cannot be overwritten.</p><div class="row"><button class="p" onclick="loadCloud()">Retry</button><button onclick="out()">Log out</button></div>`);
+ if(USER&&LEG)return c(`<b>Browser progress found on this device</b><p class="mu">${LEG.log.length} drill log(s), ${LEG.rev.length} match review(s). Merge it into your account? Existing cloud data is kept and duplicates are skipped. Your browser copy is never deleted.</p><div class="row"><button class="p" onclick="mig('merge')">Merge into my account</button><button onclick="mig('skip')">Skip</button></div>`);return''}
+addEventListener('visibilitychange',()=>{if(document.hidden&&T)pushNow()});
+const today=()=>new Date().toISOString().slice(0,10);
+const done=id=>S.log.some(l=>l.id==id&&l.date==today());
+const $=s=>document.querySelector(s);
+const PAGES=['home','dashboard','aim','mechanics','gamesense','maps','programs','review','progress','settings','account'];
+const LBL={home:'Home',dashboard:'Dashboard',aim:'Aim',mechanics:'Mechanics',gamesense:'Game Sense',maps:'Maps',programs:'Programs',review:'Review',progress:'Progress',settings:'Settings',account:'Account'};
+function plan(){const n={15:2,30:4,45:6}[S.p.time]||4;const w=WEEKS[S.week-1].d;const extra=ROLES[S.p.role][1].filter(x=>!w.includes(x));return [...w,...extra].slice(0,n)}
+function streak(){const ds=new Set(S.log.map(l=>l.date));let c=0,d=new Date();if(!ds.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);while(ds.has(d.toISOString().slice(0,10))){c++;d.setDate(d.getDate()-1)}return c}
+function drill(d){const c=done(d.id);const l=S.log.filter(x=>x.id==d.id);return `<details><summary><input type="checkbox" ${c?'checked':''} data-d="${d.id}" onclick="event.stopPropagation()"><b>${d.t}</b><span class="tag">${d.diff}</span><span class="tag">${d.dur} min</span><span class="tag">${d.reps}</span></summary><div class="in"><h4>Objective</h4>${d.obj}<h4>Where</h4>${d.loc}<h4>Steps</h4><ol>${d.steps.map(s=>`<li>${s}</li>`).join('')}</ol><h4>Mistakes to watch</h4>${d.mist}<h4>How to measure</h4>${d.meas}<h4>Platform note</h4>${PLAT[S.p.platform]}<div class="row"><span class="mu">Self-rating</span><select data-r="${d.id}">${[0,1,2,3,4,5].map(i=>`<option value="${i}" ${(l.length&&l[l.length-1].rating==i)?'selected':''}>${i||'–'}</option>`).join('')}</select><span class="mu">${l.length} completion(s)</span></div></div></details>`}
+const hdr=(t,s)=>`<h1>${t}</h1><p class="sub">${s}</p>`;
+const R={
+home:()=>`<div class="hero"><h1>SIEGE <span style="color:var(--red)">METHOD</span></h1><p class="sub">A structured in-game training program for Rainbow Six Siege: what to train, where to train it, and how to review it.</p><button class="p" onclick="go('dashboard')">Start training</button> <button onclick="go('settings')">Set up my plan</button></div><div class="grid" style="margin-top:20px">${[['Aim','Crosshair, flicks, tracking, recoil, first shots.','aim'],['Mechanics','Peeking, leaning, gunfights, operator mechanics.','mechanics'],['Game Sense','Sound, droning, decisions, clutches.','gamesense'],['4-week program','Fundamentals to ranked application.','programs']].map(a=>`<div class="card r"><b>${a[0]}</b><p class="mu">${a[1]}</p><button onclick="go('${a[2]}')">Open</button></div>`).join('')}</div>`,
+dashboard:()=>{const p=plan(),dn=p.filter(done).length,all=new Set(S.log.map(l=>l.id)).size;const lvl=Math.floor(S.log.length/10)+1;const wk=S.log.filter(l=>(Date.now()-new Date(l.date))/864e5<7);const rs=wk.filter(l=>l.rating);const m=MISSIONS[new Date().getDate()%MISSIONS.length];
+return hdr('Dashboard',`Level ${lvl} · ${S.p.platform} · ${ROLES[S.p.role][0]} · ${S.p.time}-minute session · Week ${S.week}`)+`<div class="grid"><div class="card r"><div class="mu">Streak</div><div class="big">${streak()}d</div></div><div class="card"><div class="mu">Sessions logged</div><div class="big">${S.log.length}</div></div><div class="card"><div class="mu">Today</div><div class="big">${dn}/${p.length}</div><div class="bar"><i style="width:${dn/p.length*100}%"></i></div></div></div><h2>Daily mission</h2><div class="card r">${m}</div><h2>Today's plan</h2>${p.map(i=>drill(byId[i])).join('')}<h2>Skill progress (drills tried per category)</h2><div class="grid">${[['aim','Aim'],['mech','Mechanics'],['gs','Game sense']].map(c=>{const t=DR.filter(d=>d.cat==c[0]),n=t.filter(d=>S.log.some(l=>l.id==d.id)).length;return `<div class="card">${c[1]} · ${n}/${t.length}<div class="bar"><i style="width:${n/t.length*100}%"></i></div></div>`}).join('')}</div><h2>Weekly report (last 7 days)</h2><div class="card">${wk.length?`${wk.length} drill completions across ${new Set(wk.map(l=>l.date)).size} days.${rs.length?` Average self-rating ${(rs.reduce((a,b)=>a+b.rating,0)/rs.length).toFixed(1)}/5.`:''}`:'<span class="mu">No completed drills this week yet.</span>'}</div>`},
+aim:()=>hdr('Aim Training','All drills are done inside Siege. Where a drill depends on Training Grounds options, check what your version offers.')+DR.filter(d=>d.cat=='aim').map(drill).join(''),
+mechanics:()=>hdr('Mechanics','Movement, peeking, leaning, gunfights and operator mechanics.')+DR.filter(d=>d.cat=='mech').map(drill).join(''),
+gamesense:()=>hdr('Game Sense','Think like a strong ranked player. Each module has a real-match or Custom Game exercise.')+DR.filter(d=>d.cat=='gs'&&d.id!='map').map(d=>drill(d)+`<div class="card" style="margin:-4px 0 10px"><b>Reflect:</b> What did I know before acting? Did my choice improve the odds of winning the round?</div>`).join(''),
+maps:()=>{const n=S.map?Object.values(S.map).filter(Boolean).length:0;return hdr('Map Knowledge','Learn one map at a time.')+`<div class="card r"><div class="row" style="margin:0"><b>${n}/${MAPCHK.length} complete</b></div><div class="bar"><i style="width:${n/MAPCHK.length*100}%"></i></div></div><h2>Checklist</h2>`+MAPCHK.map((c,i)=>`<label class="card" style="display:flex;gap:10px;margin-bottom:8px"><input type="checkbox" data-m="${i}" ${S.map[i]?'checked':''}>${c}</label>`).join('')+drill(byId.map)},
+programs:()=>hdr('Training programs','Four-week ranked improvement program plus role pathways.')+`<div class="pills row">${WEEKS.map((w,i)=>`<button data-w="${i+1}" class="${S.week==i+1?'on':''}">Week ${i+1}</button>`).join('')}</div><h2>Week ${S.week}: ${WEEKS[S.week-1].n}</h2>${S.week==4?'<div class="card r">Apply drills in ranked matches, review deaths in <a href="#review" style="color:var(--red)">Match Review</a>, find repeated mistakes, and set next week\'s priorities.</div><br>':''}${WEEKS[S.week-1].d.map(i=>drill(byId[i])).join('')}<h2>Role pathway: ${ROLES[S.p.role][0]}</h2>${ROLES[S.p.role][1].map(i=>drill(byId[i])).join('')}<p class="note">The session length (${S.p.time} min) sets how many drills appear on your dashboard.</p>`,
+review:()=>hdr('Match review','You enter the data yourself; Siege data is not read automatically.')+`<form id="rf" class="card"><div class="grid">${[['map','Map'],['op','Operator']].map(f=>`<div><label class="f">${f[1]}</label><input name="${f[0]}" required style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"></div>`).join('')}${[['k','Kills'],['d','Deaths'],['a','Assists'],['w','Rounds won'],['l','Rounds lost'],...RM.map(r=>[r[0],r[1]])].map(f=>`<div><label class="f">${f[1]}</label><input type="number" min="0" name="${f[0]}" value="0" style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"></div>`).join('')}</div><div class="row"><button class="p">Save review</button></div></form><div id="sum"></div>`,
+progress:()=>{const rs=S.log.filter(l=>l.rating);const tot=agg();const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0);const best={};S.log.forEach(l=>{if(l.rating&&(!best[l.id]||l.rating>best[l.id]))best[l.id]=l.rating});
+return hdr('Progress','Only your recorded data is shown.')+(S.log.length||S.rev.length?`<div class="grid"><div class="card">Drills completed<div class="big">${S.log.length}</div></div><div class="card">Active days<div class="big">${new Set(S.log.map(l=>l.date)).size}</div></div><div class="card">Avg rating<div class="big">${rs.length?(rs.reduce((a,b)=>a+b.rating,0)/rs.length).toFixed(1):'–'}</div></div></div><h2>Personal bests (highest self-rating)</h2>${Object.keys(best).length?Object.entries(best).map(([k,v])=>`<div class="card" style="margin-bottom:6px">${byId[k].t}: ${v}/5</div>`).join(''):'<div class="empty">Rate a drill to record a best.</div>'}<h2>Most frequent mistakes</h2>${top.length?top.map(x=>`<div class="card" style="margin-bottom:6px">${RM.find(r=>r[0]==x[0])[1]}: ${x[1]} total over ${S.rev.length} review(s)</div>`).join(''):'<div class="empty">No review data.</div>'}<h2>Match reviews</h2><div class="scroll">${S.rev.length?S.rev.map(r=>`<div class="card" style="margin-bottom:6px">${r.date} · ${r.map} · ${r.op} · ${r.k}/${r.d}/${r.a} · ${r.w}-${r.l}</div>`).join(''):'<div class="empty">No reviews yet.</div>'}</div>`:'<div class="empty">Nothing recorded yet. Complete a drill or save a match review.</div>')},
+account:()=>{if(!sb)return hdr('Account','Cloud saving is not configured.')+'<div class="card">Add your Supabase Project URL and publishable key at the top of the script. Until then, progress is saved in this browser only.</div>';
+if(USER)return hdr('Account','Signed in as '+esc(USER.email))+`<div class="card r">Your progress syncs automatically to your account.<div class="row"><button onclick="out()">Log out</button></div></div>`;
+const i='style="width:100%;padding:8px;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:4px"';
+return hdr('Account','Log in or sign up to save progress to the cloud and use it on any device.')+`<form class="card" style="max-width:380px" onsubmit="acct(event,'in')"><label class="f">Email</label><input name="email" type="email" required ${i}><label class="f">Password (min 6 characters)</label><input name="password" type="password" minlength="6" required ${i}><div class="row"><button class="p">Log in</button><button type="button" onclick="acct(event,'up')">Sign up</button></div><p id="aerr" class="note" style="color:var(--red)"></p></form>`},
+settings:()=>{const o=(k,v)=>`<select data-s="${k}" style="width:100%">${v.map(x=>`<option ${S.p[k]==(Array.isArray(x)?x[0]:x)?'selected':''} value="${Array.isArray(x)?x[0]:x}">${Array.isArray(x)?x[1]:x}</option>`).join('')}</select>`;
+return hdr('Settings','Questionnaire and plan setup.')+`<div class="card grid">${[['Platform',o('platform',['PC','PlayStation','Xbox'])],['Experience',o('exp',['Beginner','Intermediate','Advanced'])],['Rank / skill level',o('rank',['Copper–Bronze','Silver','Gold','Platinum','Emerald','Diamond+'])],['Main weakness',o('weak',['Aim','Mechanics','Game sense','Consistency'])],['Playstyle',o('role',Object.entries(ROLES).map(([k,v])=>[k,v[0]]))],['Training time',o('time',[[15,'15 min'],[30,'30 min'],[45,'45 min']])],['Preferred mode',o('mode',['Shooting Range','Training Grounds','Custom Game','Quick Match'])]].map(f=>`<div><label class="f">${f[0]}</label>${f[1]}</div>`).join('')}</div><p class="note">Saved automatically in this browser only (no accounts or sync in this version).</p><div class="row"><button id="rs">Reset all data</button></div>`}};
+function agg(){const t={};RM.forEach(r=>t[r[0]]=0);S.rev.forEach(r=>RM.forEach(m=>t[m[0]]+=+r[m[0]]||0));return t}
+function render(){const h=(location.hash||'#home').slice(1);const pg=PAGES.includes(h)?h:'home';$('#nav').innerHTML='<span class="logo">SIEGE <b>METHOD</b></span>'+PAGES.map(p=>`<a href="#${p}" class="${p==pg?'on':''}">${LBL[p]}</a>`).join('')+'<span id="sync" class="note" onclick="retry()" style="margin-left:auto;padding-left:12px"></span>';$('#app').innerHTML=gate()||R[pg]();setSync(SYNC);bind();scrollTo(0,0)}
+window.go=p=>location.hash=p;
+function bind(){document.querySelectorAll('[data-d]').forEach(e=>e.onchange=()=>{const id=e.dataset.d;if(e.checked)S.log.push({id,date:today(),rating:0});else{const i=S.log.map(l=>l.id==id&&l.date==today()).lastIndexOf(true);if(i>-1)S.log.splice(i,1)}save();render()});
+document.querySelectorAll('[data-r]').forEach(e=>e.onchange=()=>{const id=e.dataset.r;let l=S.log.filter(x=>x.id==id);if(!l.length){alert('Mark the drill complete first.');e.value=0;return}l[l.length-1].rating=+e.value;save()});
+document.querySelectorAll('[data-m]').forEach(e=>e.onchange=()=>{S.map[e.dataset.m]=e.checked;save();render()});
+document.querySelectorAll('[data-w]').forEach(e=>e.onclick=()=>{S.week=+e.dataset.w;save();render()});
+document.querySelectorAll('[data-s]').forEach(e=>e.onchange=()=>{S.p[e.dataset.s]=e.dataset.s=='time'?+e.value:e.value;save();render()});
+const rs=$('#rs');if(rs)rs.onclick=()=>{if(confirm('Delete all saved data?')){S={p:S.p,week:1,log:[],rev:[],map:{}};save();render()}};
+const f=$('#rf');if(f)f.onsubmit=ev=>{ev.preventDefault();const o={date:today()};new FormData(f).forEach((v,k)=>o[k]=isNaN(v)||k=='map'||k=='op'?String(v).replace(/[<>&]/g,''):+v);S.rev.push(o);save();const t=agg(),top=RM.filter(r=>t[r[0]]>0).sort((a,b)=>t[b[0]]-t[a[0]]).slice(0,3);$('#sum').innerHTML='<h2>Summary</h2><div class="card r">'+(top.length?`Across ${S.rev.length} review(s), your most recurring issues: ${top.map(r=>`${r[1].toLowerCase()} (${t[r[0]]})`).join(', ')}.<br><br>Recommended drills:<ul>${[...new Set(top.flatMap(r=>r[2]))].map(i=>`<li>${byId[i].t}</li>`).join('')}</ul>`:'No mistakes entered, so no weakness can be identified.')+'</div>'}}
+addEventListener('hashchange',render);render();initAuth();
+</script></body></html>

@@ -125,8 +125,9 @@ addEventListener('visibilitychange',()=>{if(document.hidden&&T)pushNow()});
 const today=()=>new Date().toISOString().slice(0,10);
 const done=id=>S.log.some(l=>l.id==id&&l.date==today());
 const $=s=>document.querySelector(s);
-const PAGES=['home','dashboard','aim','mechanics','gamesense','maps','programs','review','progress','settings','account'];
-const LBL={home:'Home',dashboard:'Dashboard',aim:'Aim',mechanics:'Mechanics',gamesense:'Game Sense',maps:'Maps',programs:'Programs',review:'Review',progress:'Progress',settings:'Settings',account:'Account'};
+const PAGES=['home','dashboard','aim','mechanics','gamesense','maps','programs','review','progress','valorant','trainer','settings','account'];
+const LBL={home:'Home',dashboard:'Dashboard',aim:'Aim',mechanics:'Mechanics',gamesense:'Game Sense',maps:'Maps',programs:'Programs',review:'Review',progress:'Progress',settings:'Settings',account:'Account'valorant:'Valorant',
+trainer:'Aim Trainer'},;
 function plan(){const n={15:2,30:4,45:6}[S.p.time]||4;const w=WEEKS[S.week-1].d;const extra=ROLES[S.p.role][1].filter(x=>!w.includes(x));return [...w,...extra].slice(0,n)}
 function streak(){const ds=new Set(S.log.map(l=>l.date));let c=0,d=new Date();if(!ds.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);while(ds.has(d.toISOString().slice(0,10))){c++;d.setDate(d.getDate()-1)}return c}
 function drill(d){const c=done(d.id);const l=S.log.filter(x=>x.id==d.id);return `<details><summary><input type="checkbox" ${c?'checked':''} data-d="${d.id}" onclick="event.stopPropagation()"><b>${d.t}</b><span class="tag">${d.diff}</span><span class="tag">${d.dur} min</span><span class="tag">${d.reps}</span></summary><div class="in"><h4>Objective</h4>${d.obj}<h4>Where</h4>${d.loc}<h4>Steps</h4><ol>${d.steps.map(s=>`<li>${s}</li>`).join('')}</ol><h4>Mistakes to watch</h4>${d.mist}<h4>How to measure</h4>${d.meas}<h4>Platform note</h4>${PLAT[S.p.platform]}<div class="row"><span class="mu">Self-rating</span><select data-r="${d.id}">${[0,1,2,3,4,5].map(i=>`<option value="${i}" ${(l.length&&l[l.length-1].rating==i)?'selected':''}>${i||'–'}</option>`).join('')}</select><span class="mu">${l.length} completion(s)</span></div></div></details>`}

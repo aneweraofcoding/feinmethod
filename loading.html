@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b10">
+  <title>FEIN METHOD — Initializing</title>
+
+  <style>
+    :root {
+      --bg: #080b10;
+      --panel: #0d121a;
+      --line: #202b38;
+      --text: #f1f5f9;
+      --muted: #8793a3;
+      --accent: #9bff4d;
+      --accent-soft: rgba(155, 255, 77, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(
+          ellipse at 50% 42%,
+          rgba(49, 91, 59, .17),
+          transparent 36%
+        ),
+        linear-gradient(
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        ),
+        var(--bg);
+      background-size:
+        auto,
+        44px 44px,
+        44px 44px,
+        auto;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      overflow: hidden;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          180deg,
+          transparent 55%,
+          rgba(0,0,0,.45)
+        );
+    }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 76px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: .14em;
+      font-weight: 850;
+    }
+
+    .mark {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 15px;
+      transform: rotate(45deg);
+      box-shadow: 0 0 22px rgba(155,255,77,.12);
+    }
+
+    .mark span {
+      transform: rotate(-45deg);
+    }
+
+    .brand-name {
+      font-size: 14px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 132px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 22px 70px;
+    }
+
+    .loader {
+      width: min(720px, 100%);
+      text-align: center;
+      animation: enter .8s ease both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      border: 1px solid rgba(155,255,77,.25);
+      background: var(--accent-soft);
+      padding: 9px 13px;
+      border-radius: 3px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: var(--accent);
+    }
+
+    h1 {
+      margin: 28px 0 15px;
+      font-size: clamp(42px, 8vw, 82px);
+      line-height: .96;
+      letter-spacing: -.065em;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .description {
+      color: var(--muted);
+      font-size: clamp(14px, 2vw, 17px);
+      line-height: 1.7;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .console {
+      margin: 42px auto 0;
+      width: min(480px, 100%);
+      padding: 18px 20px 20px;
+      text-align: left;
+      background: rgba(13,18,26,.82);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 65px rgba(0,0,0,.24);
+    }
+
+    .console-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+
+    .console-label,
+    .percent {
+      font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .console-label {
+      color: var(--muted);
+    }
+
+    .percent {
+      color: var(--accent);
+    }
+
+    .track {
+      height: 5px;
+      width: 100%;
+      background: #202a35;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(155,255,77,.55);
+      transition: width .05s linear;
+    }
+
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 15px;
+      color: #596574;
+      font: 9px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .steps span:first-child {
+      color: var(--accent);
+    }
+
+    .bottom-note {
+      margin-top: 27px;
+      color: #657181;
+      font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      min-height: 56px;
+      padding: 18px 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,.07);
+      color: #586270;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: .08em;
+    }
+
+    .corner {
+      position: fixed;
+      z-index: 1;
+      width: 34px;
+      height: 34px;
+      border-color: rgba(155,255,77,.35);
+      border-style: solid;
+      pointer-events: none;
+    }
+
+    .tl {
+      top: 96px;
+      left: 25px;
+      border-width: 1px 0 0 1px;
+    }
+
+    .tr {
+      top: 96px;
+      right: 25px;
+      border-width: 1px 1px 0 0;
+    }
+
+    .bl {
+      bottom: 76px;
+      left: 25px;
+      border-width: 0 0 1px 1px;
+    }
+
+    .br {
+      bottom: 76px;
+      right: 25px;
+      border-width: 0 1px 1px 0;
+    }
+
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .topbar {
+        height: 64px;
+      }
+
+      .status {
+        font-size: 9px;
+        letter-spacing: .1em;
+      }
+
+      .console {
+        margin-top: 32px;
+        padding: 15px;
+      }
+
+      .steps {
+        font-size: 8px;
+      }
+
+      .corner {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="Fein Method">
+      <div class="mark"><span>F</span></div>
+      <div class="brand-name">FEIN METHOD</div>
+    </div>
+
+    <div class="status">
+      <span class="dot"></span>
+      System ready
+    </div>
+  </header>
+
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <main>
+    <section class="loader" aria-label="Loading screen">
+      <div class="eyebrow">Training interface / online</div>
+
+      <h1>
+        FOCUS.<br>
+        <span>REFINE.</span><br>
+        ASCEND.
+      </h1>
+
+      <p class="description">
+        A focused environment for deliberate practice, sharper mechanics,
+        and measurable progress. Prepare your session.
+      </p>
+
+      <div class="console" role="status" aria-live="polite">
+        <div class="console-head">
+          <span class="console-label" id="load-message">
+            Initializing training interface
+          </span>
+          <span class="percent" id="percent">00%</span>
+        </div>
+
+        <div class="track">
+          <div class="fill" id="fill"></div>
+        </div>
+
+        <div class="steps">
+          <span>01 / Initialize</span>
+          <span>02 / Calibrate</span>
+          <span>03 / Ready</span>
+        </div>
+      </div>
+
+      <div class="bottom-note">
+        Stay consistent. Trust the process.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year">2026</span>&nbsp; FEIN METHOD. All rights reserved.
+  </footer>
+
+  <script>
+    const percent = document.getElementById('percent');
+    const message = document.getElementById('load-message');
+    const fill = document.getElementById('fill');
+
+    const start = performance.now();
+    const duration = 4000;
+    let hasRedirected = false;
+
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+
+    function openMainWebsite() {
+      if (hasRedirected) return;
+
+      hasRedirected = true;
+      message.textContent = 'Interface ready';
+      percent.textContent = '100%';
+      fill.style.width = '100%';
+
+      // The main FEIN METHOD site must be hosted at "/".
+      window.location.replace('/');
+    }
+
+    function updateLoading(now) {
+      if (hasRedirected) return;
+
+      const elapsed = now - start;
+      const progress = Math.min(
+        100,
+        Math.floor((elapsed / duration) * 100)
+      );
+
+      percent.textContent =
+        String(progress).padStart(2, '0') + '%';
+
+      fill.style.width = progress + '%';
+
+      if (progress < 30) {
+        message.textContent =
+          'Initializing training interface';
+      } else if (progress < 70) {
+        message.textContent =
+          'Calibrating session environment';
+      } else if (progress < 100) {
+        message.textContent =
+          'Preparing your workspace';
+      } else {
+        openMainWebsite();
+        return;
+      }
+
+      requestAnimationFrame(updateLoading);
+    }
+
+    requestAnimationFrame(updateLoading);
+
+    // Fallback if the browser pauses animation frames.
+    window.setTimeout(() => {
+      if (!hasRedirected) {
+        openMainWebsite();
+      }
+    }, duration + 1500);
+  </script>
+</body>
+</html>

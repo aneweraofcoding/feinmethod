@@ -60,8 +60,34 @@ const RM=[['pos','Deaths from poor positioning',['atkdef','rot']],['xh','Missed 
 /* ===== SUPABASE CONFIG: paste your Project URL and publishable key (never a secret/service-role key) ===== */
 const SB_URL='https://eqluyrgxyfzxxpwpyloa.supabase.co',SB_KEY='sb_publishable_F-NqjLBpC14hzQr_mA_OWQ_TRcz6r17';
 const sb=(!SB_URL.startsWith('YOUR_')&&!SB_KEY.startsWith('YOUR_')&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
-const mk=()=>({p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},week:1,log:[],rev:[],map:{}});
-const norm=x=>{x=x&&typeof x=='object'?x:{};return{p:{...mk().p,...(x.p||{})},week:+x.week||1,log:Array.isArray(x.log)?x.log:[],rev:Array.isArray(x.rev)?x.rev:[],map:x.map&&typeof x.map=='object'?x.map:{}}};
+
+const mk=()=>({
+  p:{platform:'PC',exp:'Beginner',rank:'Silver',weak:'Aim',role:'flex',time:30,mode:'Custom Game'},
+  week:1,
+  log:[],
+  rev:[],
+  map:{},
+  valorant:{done:[]},
+  aim:{best:0,runs:[]}
+});
+
+const norm=x=>{
+  x=x&&typeof x==='object'?x:{};
+  return{
+    p:{...mk().p,...(x.p||{})},
+    week:+x.week||1,
+    log:Array.isArray(x.log)?x.log:[],
+    rev:Array.isArray(x.rev)?x.rev:[],
+    map:x.map&&typeof x.map==='object'?x.map:{},
+    valorant:{
+      done:Array.isArray(x.valorant?.done)?x.valorant.done:[]
+    },
+    aim:{
+      best:Number(x.aim?.best)||0,
+      runs:Array.isArray(x.aim?.runs)?x.aim.runs:[]
+    }
+  };
+};
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 const hasData=x=>x&&((x.log||[]).length||(x.rev||[]).length||Object.values(x.map||{}).some(Boolean));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
